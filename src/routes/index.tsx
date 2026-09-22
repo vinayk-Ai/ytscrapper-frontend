@@ -83,13 +83,14 @@ function loadYouTubeApi(): Promise<void> {
   });
 }
 
-function getApiBaseUrl(): string {
-  const configured =
-    (import.meta.env.VITE_FASTAPI_URL as string | undefined) ??
-    (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-    "https://ytscrapper-production.up.railway.app";
+const APP_API_BASE_URL = (
+  (import.meta.env.VITE_FASTAPI_URL as string | undefined) ??
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+  "https://ytscrapper-production.up.railway.app"
+).replace(/\/$/, "");
 
-  return configured.replace(/\/$/, "");
+function getApiBaseUrl(): string {
+  return APP_API_BASE_URL;
 }
 
 function Index() {
