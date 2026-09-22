@@ -322,7 +322,7 @@ function Index() {
           }`}
         >
           {!currentTitle && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background text-muted-foreground">
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/40 font-mono text-lg">
                 ▶
               </span>
