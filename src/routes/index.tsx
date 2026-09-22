@@ -164,11 +164,21 @@ function Index() {
   }, [query, loading]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground md:h-screen md:flex-row md:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-background font-body text-foreground md:h-screen md:flex-row md:overflow-hidden">
       {/* Left: query panel */}
-      <aside className="flex w-full flex-col border-b border-border md:h-screen md:w-[38%] md:border-b-0 md:border-r">
-        <div className="border-b border-border p-4">
-          <h1 className="mb-3 text-lg font-semibold tracking-tight">ytscrapper</h1>
+      <aside className="flex w-full flex-col border-b border-border bg-sidebar/60 md:h-screen md:w-[38%] md:border-b-0 md:border-r">
+        <div className="border-b border-border px-5 pb-5 pt-6">
+          <div className="mb-4 flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 font-mono text-xs font-medium text-primary">
+              ▶
+            </span>
+            <h1 className="font-display text-lg font-semibold tracking-tight">
+              ytscrapper
+              <span className="ml-2 font-mono text-[10px] font-normal uppercase tracking-widest text-muted-foreground">
+                dsa revision
+              </span>
+            </h1>
+          </div>
           <form
             className="flex gap-2"
             onSubmit={(e) => {
@@ -176,33 +186,36 @@ function Index() {
               search();
             }}
           >
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="sliding window technique"
-              className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-            />
+            <div className="relative min-w-0 flex-1">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="sliding window technique"
+                className="w-full rounded-lg border border-input bg-background/80 px-3.5 py-2.5 text-sm outline-none transition-all placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-ring/30"
+              />
+            </div>
             <button
               type="submit"
               disabled={loading || !query.trim()}
-              className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              className="shrink-0 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:hover:brightness-100"
             >
               {loading ? "…" : "Search"}
             </button>
           </form>
         </div>
 
-        <div className="flex-1 space-y-2 overflow-y-auto p-4">
+        <div className="flex-1 space-y-2.5 overflow-y-auto p-4">
           {loading && (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="animate-pulse rounded-lg border border-border bg-muted/50 p-3"
+                  className="animate-pulse rounded-xl border border-border surface-raised p-3.5"
+                  style={{ animationDelay: `${i * 60}ms` }}
                 >
                   <div className="h-3 w-2/3 rounded bg-muted" />
-                  <div className="mt-2 h-3 w-full rounded bg-muted" />
+                  <div className="mt-2.5 h-3 w-full rounded bg-muted" />
                   <div className="mt-2 h-3 w-1/3 rounded bg-muted" />
                 </div>
               ))}
@@ -210,44 +223,72 @@ function Index() {
           )}
 
           {!loading && error && (
-            <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <p className="animate-result-in rounded-lg border border-destructive/30 bg-destructive/10 p-3.5 text-sm leading-relaxed text-destructive">
               {error}
             </p>
           )}
 
           {!loading && !error && results.length === 0 && (
-            <p className="pt-10 text-center text-sm text-muted-foreground">
-              {searched ? "No results found for this topic." : "Search a topic to get started."}
-            </p>
+            <div className="flex flex-col items-center gap-3 pt-16 text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted/40 font-mono text-muted-foreground">
+                {searched ? "∅" : "⌕"}
+              </span>
+              <p className="max-w-52 text-sm leading-relaxed text-muted-foreground">
+                {searched
+                  ? "No results found for this topic."
+                  : "Search a topic to get started."}
+              </p>
+            </div>
           )}
 
           {!loading &&
-            results.map((r) => {
+            results.map((r, idx) => {
               const selected = r.id === selectedId;
               return (
                 <button
                   key={r.id}
                   onClick={() => playResult(r)}
-                  className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                  style={{ animationDelay: `${idx * 45}ms` }}
+                  className={`group w-full animate-result-in rounded-xl border p-3.5 text-left transition-all duration-200 ${
                     selected
-                      ? "border-primary bg-accent ring-1 ring-primary"
-                      : "border-border bg-card hover:bg-accent/60"
+                      ? "border-primary/40 surface-raised glow-primary"
+                      : "border-border surface-raised hover:border-primary/25 hover:bg-accent/40"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-medium leading-snug">{r.video_title}</span>
-                    <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+                  <div className="flex items-start justify-between gap-3">
+                    <span
+                      className={`text-sm font-medium leading-snug transition-colors ${
+                        selected ? "text-primary" : "text-card-foreground group-hover:text-foreground"
+                      }`}
+                    >
+                      {r.video_title}
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-md px-2 py-0.5 font-mono text-[11px] tabular-nums transition-colors ${
+                        selected
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       {formatSeconds(r.start)}–{formatSeconds(r.end)}
                     </span>
                   </div>
-                  <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
+                  <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                     {r.text}
                   </p>
-                  <div className="mt-1.5 text-[11px] text-muted-foreground/70">
-                    score {r.score.toFixed(2)}
-                    {typeof r.cosine_similarity === "number" &&
-                      ` · cos ${r.cosine_similarity.toFixed(2)}`}
-                    {` · video #${r.video_number}`}
+                  <div className="mt-2.5 flex items-center gap-1.5 font-mono text-[10px] tracking-wide text-muted-foreground/60">
+                    <span>score {r.score.toFixed(2)}</span>
+                    {typeof r.cosine_similarity === "number" && (
+                      <>
+                        <span className="text-border">·</span>
+                        <span>cos {r.cosine_similarity.toFixed(2)}</span>
+                      </>
+                    )}
+                    <span className="text-border">·</span>
+                    <span>#{r.video_number}</span>
+                    {selected && (
+                      <span className="ml-auto text-primary">now playing</span>
+                    )}
                   </div>
                 </button>
               );
@@ -256,26 +297,42 @@ function Index() {
       </aside>
 
       {/* Right: video panel */}
-      <main className="flex w-full flex-1 flex-col p-4 md:h-screen md:w-[62%] md:overflow-y-auto">
-        <div className="mb-3 flex min-h-7 items-center">
+      <main className="flex w-full flex-1 flex-col p-5 md:h-screen md:w-[62%] md:overflow-y-auto md:p-8">
+        <div className="mb-4 flex min-h-8 items-center gap-3">
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full transition-colors ${
+              currentTitle ? "bg-primary" : "bg-muted"
+            }`}
+          />
           {currentTitle ? (
-            <h2 className="truncate text-base font-medium">{currentTitle}</h2>
+            <h2 className="truncate font-display text-base font-semibold tracking-tight">
+              {currentTitle}
+            </h2>
           ) : (
             <h2 className="text-sm text-muted-foreground">
               Search and select a result to play
             </h2>
           )}
         </div>
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted/30">
+        <div
+          className={`relative aspect-video w-full overflow-hidden rounded-2xl border transition-all duration-300 ${
+            currentTitle
+              ? "border-primary/30 glow-primary"
+              : "border-border bg-muted/20"
+          }`}
+        >
           {!currentTitle && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center text-sm text-muted-foreground">
-              No video selected
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/40 font-mono text-lg">
+                ▶
+              </span>
+              <span className="text-sm">No video selected</span>
             </div>
           )}
           <div id="yt-player" className="h-full w-full" />
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Pick a result on the left — the video jumps straight to the moment the topic is taught.
+        <p className="mt-4 font-mono text-[11px] tracking-wide text-muted-foreground/70">
+          // pick a result — the video jumps to the exact moment the topic is taught
         </p>
       </main>
     </div>
