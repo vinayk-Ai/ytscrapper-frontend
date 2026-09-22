@@ -1,0 +1,6 @@
+{
+  "_comment": "Maps video_number (playlist index, 1-based) to YouTube video_id. Fill in the real IDs matching your 127-video playlist order. Entries shown here are placeholders.",
+  "1": "PLACEHOLDER_VIDEO_ID_1",
+  "2": "PLACEHOLDER_VIDEO_ID_2",
+  "3": "PLACEHOLDER_VIDEO_ID_3"
+}
