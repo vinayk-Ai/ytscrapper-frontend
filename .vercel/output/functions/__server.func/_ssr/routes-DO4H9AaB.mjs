@@ -1,6 +1,6 @@
 import { r as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-DhWsRdX5.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-DO4H9AaB.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var video_map_default = {
@@ -163,6 +163,9 @@ function loadYouTubeApi() {
 		}
 	});
 }
+function getApiBaseUrl() {
+	return "https://ytscrapper-production.up.railway.app".replace(/\/$/, "");
+}
 function Index() {
 	const [query, setQuery] = (0, import_react.useState)("");
 	const [results, setResults] = (0, import_react.useState)([]);
@@ -248,7 +251,7 @@ function Index() {
 		setSearched(true);
 		setError(null);
 		try {
-			const endpoint = `${"http://127.0.0.1:8000".replace(/\/$/, "")}/ask`;
+			const endpoint = `${getApiBaseUrl()}/ask`;
 			const res = await fetch(endpoint, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
