@@ -83,6 +83,15 @@ function loadYouTubeApi(): Promise<void> {
   });
 }
 
+function getApiBaseUrl(): string {
+  const configured =
+    (import.meta.env.VITE_FASTAPI_URL as string | undefined) ??
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+    "https://ytscrapper-production.up.railway.app";
+
+  return configured.replace(/\/$/, "");
+}
+
 function Index() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -189,8 +198,8 @@ function Index() {
     setSearched(true);
     setError(null);
     try {
-      const apiBaseUrl = (import.meta.env.VITE_FASTAPI_URL as string | undefined) ?? "http://127.0.0.1:8000";
-      const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/ask`;
+      const apiBaseUrl = getApiBaseUrl();
+      const endpoint = `${apiBaseUrl}/ask`;
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
