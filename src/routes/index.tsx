@@ -36,7 +36,20 @@ interface SearchResult {
 }
 
 // video_number -> YouTube video_id mapping (playlist order).
-const videoMap = videoMapJson as Record<string, string>;
+const videoMap = videoMapJson as Record<string, string | Record<string, string>>;
+const titleVideoMap = (videoMapJson as Record<string, any>).title_to_id as Record<string, string> | undefined;
+
+function normalizeVideoKey(value: number | string): string {
+  return String(value).replace(/^0+/, "");
+}
+
+function normalizeTitleKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function formatSeconds(s: number): string {
   const m = Math.floor(s / 60);
@@ -115,10 +128,39 @@ function Index() {
   }, []);
 
   const playResult = useCallback((result: SearchResult) => {
-    const videoId = videoMap[String(result.video_number)];
-    if (!videoId || videoId.startsWith("PLACEHOLDER")) {
+    const key = normalizeVideoKey(result.video_number);
+    const directVideoId =
+      typeof videoMap[String(result.video_number)] === "string"
+        ? (videoMap[String(result.video_number)] as string)
+        : typeof videoMap[key] === "string"
+          ? (videoMap[key] as string)
+          : typeof videoMap[String(result.video_number).padStart(3, "0")] === "string"
+            ? (videoMap[String(result.video_number).padStart(3, "0")] as string)
+            : undefined;
+
+    const titleVideoId = (() => {
+      if (!result.video_title || !titleVideoMap) return undefined;
+
+      const exact = titleVideoMap[result.video_title];
+      if (exact && !exact.startsWith("PLACEHOLDER")) return exact;
+
+      const targetKey = normalizeTitleKey(result.video_title);
+      for (const [title, id] of Object.entries(titleVideoMap)) {
+        if (!id || id.startsWith("PLACEHOLDER")) continue;
+        if (normalizeTitleKey(title) === targetKey) return id;
+      }
+      return undefined;
+    })();
+
+    const videoId = directVideoId && !directVideoId.startsWith("PLACEHOLDER")
+      ? directVideoId
+      : titleVideoId && !titleVideoId.startsWith("PLACEHOLDER")
+        ? titleVideoId
+        : undefined;
+
+    if (!videoId) {
       setError(
-        `No YouTube video_id mapped for video_number ${result.video_number}. Add it to src/data/video-map.json.`,
+        `No YouTube video_id mapped for video_number ${result.video_number} or title "${result.video_title}". Add it to src/data/video-map.json.`,
       );
       return;
     }
@@ -138,7 +180,7 @@ function Index() {
       player.loadVideoById({ videoId, startSeconds: result.start });
       loadedVideoIdRef.current = videoId;
     }
-  }, []);
+  }, [titleVideoMap]);
 
   const search = useCallback(async () => {
     const q = query.trim();
@@ -147,14 +189,32 @@ function Index() {
     setSearched(true);
     setError(null);
     try {
-      const res = await fetch("/search", {
+      const apiBaseUrl = (import.meta.env.VITE_FASTAPI_URL as string | undefined) ?? "http://127.0.0.1:8000";
+      const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/ask`;
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q }),
+        body: JSON.stringify({ question: q }),
       });
-      if (!res.ok) throw new Error(`Search failed (${res.status})`);
-      const data = (await res.json()) as { relevant_vectors: SearchResult[] };
-      setResults(data.relevant_vectors ?? []);
+
+      const data = (await res.json().catch(() => null)) as {
+        answer?: string;
+        allowed?: boolean;
+        relevant_vectors?: SearchResult[];
+        detail?: string;
+      } | null;
+
+      if (!res.ok) {
+        throw new Error(data?.detail || `Search failed (${res.status})`);
+      }
+
+      if (data?.allowed === false) {
+        setResults([]);
+        setError(data.answer || "This system only supports DSA-related questions.");
+        return;
+      }
+
+      setResults(data?.relevant_vectors ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Search failed");
       setResults([]);
